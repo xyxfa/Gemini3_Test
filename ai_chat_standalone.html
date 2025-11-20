@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>于右任智能体</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #c0392b;
+            --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg-gradient);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            width: 100%;
+            height: 100%;
+            max-width: 800px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+        }
+
+        .header {
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(192, 57, 43, 0.3);
+        }
+
+        .info h1 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .info p {
+            margin: 2px 0 0;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .bubble {
+            max-width: 70%;
+            padding: 10px 14px;
+            border-radius: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .message.bot .bubble {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .message.user .bubble {
+            background: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 5px;
+            box-shadow: 0 2px 5px rgba(192, 57, 43, 0.2);
+        }
+
+        .input-area {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 13px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--primary-color);
+        }
+
+        button {
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        .voice-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #f1f1f1;
+            color: #555;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .voice-btn.listening {
+            background: var(--primary-color);
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        .send-btn {
+            padding: 9px 18px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .send-btn:hover {
+            background: #a93226;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(192, 57, 43, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(192, 57, 43, 0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="header">
+            <div class="avatar">于</div>
+            <div class="info">
+                <h1>于右任智能体</h1>
+                <p>跨越时空的对话</p>
+            </div>
+        </div>
+
+        <div class="chat-box" id="chat-box">
+            <div class="message bot">
+                <div class="bubble">你好!我是于右任智能体。关于我的生平、书法或爱国故事,你有什么想问的吗?</div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <button id="voice-btn" class="voice-btn">🎤</button>
+            <input type="text" id="user-input" placeholder="输入消息或点击麦克风说话...">
+            <button id="send-btn" class="send-btn">发送</button>
+        </div>
+    </div>
+
+    <script>
+        // AI知识库
+        const AI_RESPONSES = {
+            "书法": "于右任先生创立了'标准草书',整理了历代草书,使其规范化,便于大众学习。标准草书的原则是:易识、易写、准确、美丽。",
+            "爱国": "于右任先生一生爱国,晚年写下的《望大陆》表达了他对祖国统一的深切渴望。诗中写道:'葬我于高山之上兮,望我大陆;大陆不可见兮,只有痛哭!'",
+            "是谁": "于右任(1879-1964),陕西三原人,是中国近现代政治家、教育家、书法家。他是同盟会成员,追随孙中山先生,也是上海大学的创办人,被誉为'当代草圣'。",
+            "教育": "于右任先生非常重视教育,他创办了上海大学,担任复旦大学校董。他认为教育是强国之本。",
+            "三原": "于右任先生是陕西三原人,祖籍泾阳。他一生心系家乡,为家乡的发展做出了很多贡献。",
+            "草圣": "于右任先生被誉为'当代草圣',他的草书刚劲有力,自成一家。他创立的标准草书对现代书法影响深远。",
+            "标准草书": "标准草书是于右任先生整理和创立的书法体系。他的理念是'广草书于天下,以利制作而省光阴',让草书更加规范和易学。",
+            "名言": "于右任先生有一句著名的座右铭:'计利当计天下利,求名应求万世名'。这体现了他心怀天下、不求私利的高尚情操。"
+        };
+
+        const DEFAULT_RESPONSES = [
+            "于右任先生是近代著名的书法家,被誉为'当代草圣'。",
+            "'计利当计天下利,求名应求万世名',这是于右任先生的座右铭。",
+            "标准草书的原则是:易识、易写、准确、美丽。",
+            "少先队员们,我们要学习于爷爷的爱国精神,从小立志报效祖国!",
+            "于右任先生也是一位伟大的教育家,创办了上海大学。",
+            "很高兴能和你聊天!你想了解关于于右任先生的什么故事呢?"
+        ];
+
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const voiceBtn = document.getElementById('voice-btn');
+
+        function addMessage(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message', sender);
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            bubble.textContent = text;
+            msgDiv.appendChild(bubble);
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function getAIReply(userMessage) {
+            // 关键词匹配
+            for (let keyword in AI_RESPONSES) {
+                if (userMessage.includes(keyword)) {
+                    return AI_RESPONSES[keyword];
+                }
+            }
+            // 随机回复
+            return DEFAULT_RESPONSES[Math.floor(Math.random() * DEFAULT_RESPONSES.length)];
+        }
+
+        function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            addMessage(text, 'user');
+            userInput.value = '';
+
+            setTimeout(() => {
+                const reply = getAIReply(text);
+                addMessage(reply, 'bot');
+            }, 500);
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // 语音识别
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'zh-CN';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = () => voiceBtn.classList.add('listening');
+            recognition.onend = () => voiceBtn.classList.remove('listening');
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+                sendMessage();
+            };
+
+            voiceBtn.addEventListener('click', () => recognition.start());
+        } else {
+            voiceBtn.style.opacity = '0.5';
+            voiceBtn.title = '您的浏览器不支持语音识别';
+        }
+    </script>
+</body>
+
+</html>
